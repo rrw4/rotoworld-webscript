@@ -25,6 +25,7 @@ local smtp_username = storage.smtp_username
 local smtp_password = storage.smtp_password
 local smtp_from_email = storage.smtp_from_email
 local my_email = storage.my_email
+local storage_count = 15
 
 -- Processing functions
 function str_clean(str)
@@ -35,9 +36,11 @@ function str_clean(str)
   return string.sub(str, a1, string.len(str)-b1+1)
 end
 
-function update_last_slot()
+function get_next_slot()
+  -- returns next slot and updates storage.last_slot
   storage.last_slot = tonumber(storage.last_slot) + 1
-  if tonumber(storage.last_slot) > 3 then storage.last_slot = 1 end
+  if tonumber(storage.last_slot) > storage_count then storage.last_slot = 1 end
+  return storage.last_slot
 end
 
 function send_notifications(name, news)
@@ -65,18 +68,16 @@ function process_data(data)
   player_news = data[2]
   for k, v in pairs(players) do
     if v == player_name then
-      -- Three slot "memory"
-      if storage.news1 ~= player_news and
-        storage.news2 ~= player_news and
-        storage.news3 ~= player_news then
-        if tonumber(storage.last_slot) == 1 then
-          storage.news2 = player_news
-        elseif tonumber(storage.last_slot) == 2 then
-          storage.news3 = player_news
-        else
-          storage.news1 = player_news
+      existing_update = false
+      for i = 1, storage_count do
+        if storage["rotoworld:" .. storage_count] == player_news then
+          existing_update = true
+          break
         end
-        update_last_slot()
+      end
+
+      if existing_update == false then
+        storage["rotoworld:" .. get_next_slot()] = player_news
         send_notifications(player_name, player_news)
       end
     end

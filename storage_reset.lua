@@ -1,3 +1,7 @@
+storage_count = 15
+for i = 1, storage_count do
+  storage["rotoworld" .. storage_count] = ""
+end
 storage.news1 = ""
 storage.news2 = ""
 storage.news3 = ""
